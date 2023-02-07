@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Render } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Render } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { AppService } from './app.service';
 import UserData from './UserData';
@@ -27,6 +27,12 @@ export class AppController {
   async listUsers() {
     const users = this.dataSource.getRepository(UserData);
     return await users.find();
+  }
+
+  @Delete('user/:id')
+  deleteUser(@Param('id') id: number) {
+    const users = this.dataSource.getRepository(UserData);
+    users.delete(id);
   }
   
 }
