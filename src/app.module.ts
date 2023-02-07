@@ -14,6 +14,7 @@ import UserData from './UserData';
       database: 'database',
       entities: [
         UserData
+        
       ],
       synchronize: true,
     }),
