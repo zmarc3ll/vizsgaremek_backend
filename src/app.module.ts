@@ -14,7 +14,6 @@ import UserData from './UserData';
       database: 'vizsgaremek',
       entities: [
         UserData
-
       ],
       synchronize: true,
     }),
