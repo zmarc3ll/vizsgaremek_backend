@@ -11,10 +11,10 @@ import UserData from './UserData';
       host: 'localhost',
       username: 'root',
       password: '',
-      database: 'database',
+      database: 'vizsgaremek',
       entities: [
         UserData
-        
+
       ],
       synchronize: true,
     }),
