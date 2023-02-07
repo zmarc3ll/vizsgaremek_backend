@@ -16,4 +16,7 @@ export default class UserData {
 
   @Column()
   vaneskyline: boolean;
+
+  @Column()
+  testAdat: string; //temporary
 }
