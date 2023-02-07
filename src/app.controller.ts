@@ -22,4 +22,11 @@ export class AppController {
     const users = this.dataSource.getRepository(UserData);
     users.save(user);
   }
+
+  @Get('user')
+  async listUsers() {
+    const users = this.dataSource.getRepository(UserData);
+    return await users.find();
+  }
+  
 }
