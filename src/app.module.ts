@@ -12,10 +12,7 @@ import UserData from './UserData';
       username: 'root',
       password: '',
       database: 'database',
-      entities: [
-        UserData
-        
-      ],
+      entities: [UserData],
       synchronize: true,
     }),
   ],

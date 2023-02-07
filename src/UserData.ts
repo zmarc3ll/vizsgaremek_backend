@@ -1,16 +1,19 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export default class UserData {
-    @PrimaryGeneratedColumn()
-    id: number;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @Column()
-    username: string;
+  @Column()
+  username: string;
 
-    @Column()
-    password: string;
+  @Column()
+  password: string;
 
-    @Column()
-    passwordAuth: string; //the password again to make sure it matches.
+  @Column()
+  passwordAuth: string; //the password again to make sure it matches.
+
+  @Column()
+  vaneskyline: boolean;
 }
