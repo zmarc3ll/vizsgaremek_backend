@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Render } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Render } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { AppService } from './app.service';
 import UserData from './UserData';
@@ -34,5 +34,17 @@ export class AppController {
     const users = this.dataSource.getRepository(UserData);
     users.delete(id);
   }
+
+  /* @Patch('/user/:id')
+  @HttpCode(200)
+  async ChangeUserData(
+    @Param('id') id: number,
+    @Body() UserData: UserData) {
+    const userRepo = this.dataSource.getRepository(UserData);
+    const user = await userRepo.findOneBy({ id: id });
+    user.username = ChangeUserData.username;
+    user.password = ChangeUserData.password;
+  } */
+
   
 }
