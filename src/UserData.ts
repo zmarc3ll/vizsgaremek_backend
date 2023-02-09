@@ -13,4 +13,7 @@ export default class UserData {
 
   @Column()
   passwordAuth: string; //the password again to make sure it matches.
+
+  @Column()
+  email: string;
 }
