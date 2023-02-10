@@ -1,7 +1,9 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Render } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Render } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { AppService } from './app.service';
-import UserData from './UserData';
+import UserData from './UserData.dto';
+import * as bcrypt from 'bcrypt';
+import ChangeUserData from './ChangeUserData.dto';
 
 @Controller()
 export class AppController {
@@ -17,10 +19,27 @@ export class AppController {
   }
 
   @Post('user')
-  addUser(@Body() user: UserData) {
-    user.id = undefined;
-    const users = this.dataSource.getRepository(UserData);
-    users.save(user);
+  @HttpCode(200)
+  async addUser(@Body() userData: UserData) {
+    if (userData.password !== userData.passwordAuth) {
+      throw new BadRequestException('The two passwords must match!');
+    }
+    if (userData.password.length < 6) {
+      throw new BadRequestException('The password must be at least 6 characters long!');
+    }
+    const userRepo = this.dataSource.getRepository(UserData);
+    userData.id = undefined;
+    const user = new UserData();
+    user.username=userData.username;
+    user.password = await bcrypt.hash(userData.password, 5)
+    user.passwordAuth = await bcrypt.hash(userData.passwordAuth, 5)
+    user.email = userData.email;
+    user.birthDate=userData.birthDate;
+    user.registrationDate=userData.registrationDate;
+    delete user.passwordAuth;
+    await userRepo.save(user);
+    delete user.password;
+    return user;
   }
 
   @Get('user')
@@ -35,16 +54,21 @@ export class AppController {
     users.delete(id);
   }
 
-  /* @Patch('/user/:id')
+  @Patch('/user/:id')
   @HttpCode(200)
   async ChangeUserData(
     @Param('id') id: number,
-    @Body() UserData: UserData) {
+    @Body() changeUserData: ChangeUserData) {
     const userRepo = this.dataSource.getRepository(UserData);
     const user = await userRepo.findOneBy({ id: id });
-    user.username = ChangeUserData.username;
-    user.password = ChangeUserData.password;
-  } */
+    user.username = changeUserData.username;
+    user.password = changeUserData.password;
+    user.passwordAuth = changeUserData.passwordAuth;
+     await userRepo.save(user);
+     delete user.password;
+     delete user.passwordAuth;
+    return user;
+  } 
 
   
 }
