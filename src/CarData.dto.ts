@@ -1,4 +1,4 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import UserData from './UserData.dto';
 
 @Entity()
@@ -16,6 +16,9 @@ export default class CarData {
   modelYear: number;
 
   @Column()
+  fuelType: string;
+
+  @Column()
   carPower: number;
 
   @Column()
@@ -28,5 +31,14 @@ export default class CarData {
   chassisType: string;
 
   @Column()
-  fuelType: string;
+  doors: number;
+
+  @Column()
+  fuelEconomy: string;
+
+  @Column()
+  license_plate: string;
+
+  @ManyToOne(() => UserData, (user) => user.cars)
+  users: CarData;
 }
