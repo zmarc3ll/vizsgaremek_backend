@@ -45,12 +45,12 @@ export default class UserData {
   email: string;
 
   @IsDate()
-  @Column({default: formatDate(now)})
+  @Column({ default: formatDate(now) })
   birthDate: Date;
 
   @IsDate()
   @IsOptional()
-  @Column({default: formatDate(now)})
+  @Column({ default: formatDate(now) })
   registrationDate: Date;
 
   @OneToMany(() => CarData, (car) => car.users)
