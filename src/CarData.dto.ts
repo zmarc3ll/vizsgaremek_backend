@@ -20,4 +20,13 @@ export default class CarData {
 
   @Column()
   gearType: string;
+
+  @Column()
+  color: string;
+
+  @Column()
+  chassisType: string;
+
+  @Column()
+  fuelType: string;
 }
