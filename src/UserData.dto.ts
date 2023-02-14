@@ -1,5 +1,6 @@
 import { IsEmail, IsString, MinLength,IsDate,IsOptional } from 'class-validator';
-import { Column, Entity, IsNull, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, IsNull, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import CarData from './CarData.dto';
 
 const now = new Date();
 function padTo2Digits(num: number) {
@@ -51,4 +52,7 @@ export default class UserData {
   @IsOptional()
   @Column({default: formatDate(now)})
   registrationDate: Date;
+
+  @OneToMany(() => CarData, (car) => car.users)
+  cars: CarData[];
 }
