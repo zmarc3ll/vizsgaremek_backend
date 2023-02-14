@@ -12,4 +12,12 @@ export default class CarData {
   @Column()
   model: string;
 
+  @Column()
+  modelYear: number;
+
+  @Column()
+  carPower: number;
+
+  @Column()
+  gearType: string;
 }
