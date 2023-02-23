@@ -1,5 +1,17 @@
-import { IsEmail, IsString, MinLength,IsDate,IsOptional } from 'class-validator';
-import { Column, Entity, IsNull, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  IsEmail,
+  IsString,
+  MinLength,
+  IsDate,
+  IsOptional,
+} from 'class-validator';
+import {
+  Column,
+  Entity,
+  IsNull,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import CarData from './CarData.dto';
 
 const now = new Date();
@@ -13,14 +25,15 @@ function formatDate(date: Date) {
       date.getFullYear(),
       padTo2Digits(date.getMonth() + 1),
       padTo2Digits(date.getDate()),
-    ].join('-')) +
+    ].join('-') +
     ' ' +
     [
       padTo2Digits(date.getHours()),
       padTo2Digits(date.getMinutes()),
       padTo2Digits(date.getSeconds()),
-    ].join(':');
-  }
+    ].join(':')
+  );
+}
 
 @Entity()
 export default class UserData {
