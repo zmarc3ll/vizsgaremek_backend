@@ -21,18 +21,12 @@ export class AppController {
   @Post('user')
   @HttpCode(200)
   async addUser(@Body() userData: UserData) {
-    if (userData.password !== userData.passwordAuth) {
-      throw new BadRequestException('The two passwords must match!');
-    }
-    if (userData.password.length < 6) {
-      throw new BadRequestException('The password must be at least 6 characters long!');
-    }
     const userRepo = this.dataSource.getRepository(UserData);
     userData.id = undefined;
     const user = new UserData();
     user.username=userData.username;
     user.password = await bcrypt.hash(userData.password, 5)
-    user.passwordAuth = await bcrypt.hash(userData.passwordAuth, 5)
+    user.passwordAuth = await userData.passwordAuth;
     user.email = userData.email;
     user.birthDate=userData.birthDate;
     user.registrationDate=userData.registrationDate;
