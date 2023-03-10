@@ -2,6 +2,7 @@ import {
   IsEmail,
   IsString,
   MinLength,
+  MaxLength,
   IsDate,
   IsOptional,
 } from 'class-validator';
