@@ -41,6 +41,8 @@ export default class UserData {
   id: number;
 
   @Column()
+  @MinLength(3)
+  @MaxLength(10)
   username: string;
 
   @IsString()
