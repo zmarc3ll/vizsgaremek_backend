@@ -64,5 +64,12 @@ export class AppController {
     return user;
   } 
 
+  @Get()
+  ownProfile() {
+    return {
+      data: 'this is the current users profile',
+    };
+  }
+
   
 }
