@@ -3,8 +3,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
-import CarData from './CarData.dto';
-import UserData from './UserData.dto';
+import Token from './auth/token.entity';
+import CarData from './CarData.entity';
+import UserData from './UserData.entity';
 
 @Module({
   imports: [
@@ -15,8 +16,7 @@ import UserData from './UserData.dto';
       password: '',
       database: 'vizsgaremek',
       entities: [
-        UserData, CarData
-      ],
+        UserData, CarData, Token],
       synchronize: true,
     }),
     AuthModule,
