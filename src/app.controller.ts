@@ -1,9 +1,11 @@
-import { BadRequestException, Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Render } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, HttpCode, Param, Patch, Post,Request, UseGuards} from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { AppService } from './app.service';
-import UserData from './UserData.dto';
+import UserData from './UserData.entity';
 import * as bcrypt from 'bcrypt';
-import ChangeUserData from './ChangeUserData.dto';
+import ChangeUserData from './ChangeUserData.entity';
+import { AuthGuard } from '@nestjs/passport';
+import Token from './auth/token.entity';
 
 @Controller()
 export class AppController {
@@ -11,12 +13,6 @@ export class AppController {
     private readonly appService: AppService,
     private dataSource: DataSource,
   ) { }
-
-  @Get()
-  @Render('index')
-  index() {
-    return { message: 'Welcome to the homepage' };
-  }
 
   @Post('user')
   @HttpCode(200)
@@ -64,12 +60,31 @@ export class AppController {
     return user;
   } 
 
-  @Get()
-  ownProfile() {
+  @Get('profile')
+  @UseGuards(AuthGuard('bearer'))
+  ownProfile(@Request() req) {
+    const user: UserData = req.user;
     return {
-      data: 'this is the current users profile',
+      email: user.email,
+      birthDate: user.birthDate,
     };
   }
 
+  @Delete('profile/:userId')
+  deleteUserToken(@Param('userId') id: number) {
+    const token = this.dataSource.getRepository(Token);
+    token.delete(id);
+  }
   
+  /*
+  @Get('allusers')
+  @UseGuards(AuthGuard('bearer'))
+  allUsers(@Request() req) {
+    const user: User = req.user;
+    if (user.admin != true) {
+      throw new UnauthorizedException();
+    }
+    //...
+  }
+  */
 }
