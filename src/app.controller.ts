@@ -70,21 +70,9 @@ export class AppController {
     };
   }
 
-  @Delete('profile/:userId')
+  @Delete('auth/logout/:id')
   deleteUserToken(@Param('userId') id: number) {
     const token = this.dataSource.getRepository(Token);
     token.delete(id);
   }
-  
-  /*
-  @Get('allusers')
-  @UseGuards(AuthGuard('bearer'))
-  allUsers(@Request() req) {
-    const user: User = req.user;
-    if (user.admin != true) {
-      throw new UnauthorizedException();
-    }
-    //...
-  }
-  */
 }
