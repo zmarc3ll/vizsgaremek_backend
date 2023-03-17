@@ -70,9 +70,12 @@ export class AppController {
     };
   }
 
-  @Delete('auth/logout/:id')
-  deleteUserToken(@Param('userId') id: number) {
-    const token = this.dataSource.getRepository(Token);
-    token.delete(id);
+  @Delete('auth/logout')
+  @UseGuards(AuthGuard('bearer'))
+  deleteToken(@Request() req) {
+    const user: UserData = req.user;
+    const tokenRepo = this.dataSource.getRepository(Token);
+    tokenRepo.delete({ user: user });
   }
+
 }
