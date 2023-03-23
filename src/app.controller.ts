@@ -70,6 +70,12 @@ export class AppController {
     };
   }
 
+  @Get('/logout')
+  logout(@Request() req): any {
+    req.session.destroy();
+    return { msg: 'The user session has ended' }
+  }
+
   @Delete('auth/logout')
   @UseGuards(AuthGuard('bearer'))
   deleteToken(@Request() req) {
