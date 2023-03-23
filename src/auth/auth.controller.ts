@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UnauthorizedException } from '@nestjs/common';
+import { Body, Controller, Delete, Post, Req, UnauthorizedException } from '@nestjs/common';
 import { AppService } from 'src/app.service';
 import UserData from 'src/UserData.entity';
 import { DataSource } from 'typeorm';
@@ -25,4 +25,11 @@ constructor(private dataSource: DataSource, private authService: AuthService) {}
             token: await this.authService.generateTokenFor(user),
         };
     }
+
+    // @Delete('logout')
+    // async logout(@Req() req:Request) {
+    //     const token = req.headers.authorization.split(' ')[1];
+    //     await this.authService.deleteTokenFor(token);
+    // }
+
 }
