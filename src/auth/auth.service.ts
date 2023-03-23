@@ -6,6 +6,9 @@ import Token from './token.entity';
 
 @Injectable()
 export class AuthService {
+    verifyToken(token: string) {
+        throw new Error('Method not implemented.');
+    }
     constructor(private dataSource: DataSource) {}
 
     async findUserByToken(token: string) {
@@ -30,5 +33,10 @@ export class AuthService {
         await this.dataSource.getRepository(Token).insert(token);
 
         return tokenString;
+    }
+
+    async deleteTokenFor(token: string) {
+      const tokenRepo = this.dataSource.getRepository(Token);
+      await tokenRepo.delete({ token });
     }
 }
