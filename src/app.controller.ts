@@ -1,9 +1,9 @@
 import { BadRequestException, Body, Controller, Delete, Get, HttpCode, Param, Patch, Post,Request, UseGuards} from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { AppService } from './app.service';
-import UserData from './UserData.entity';
+import UserData from './entities/UserData.entity';
 import * as bcrypt from 'bcrypt';
-import ChangeUserData from './ChangeUserData.entity';
+import ChangeUserData from './entities/ChangeUserData.entity';
 import { AuthGuard } from '@nestjs/passport';
 import Token from './auth/token.entity';
 
@@ -76,12 +76,11 @@ export class AppController {
     return { msg: 'The user session has ended' }
   }
 
-  @Delete('auth/logout')
+   /* @Delete('auth/logout')
   @UseGuards(AuthGuard('bearer'))
   deleteToken(@Request() req) {
     const user: UserData = req.user;
     const tokenRepo = this.dataSource.getRepository(Token);
     tokenRepo.delete({ user: user });
-  }
-
+  } */
 }

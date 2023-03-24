@@ -4,8 +4,8 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import Token from './auth/token.entity';
-import CarData from './CarData.entity';
-import UserData from './UserData.entity';
+import CarData from './entities/CarData.entity';
+import UserData from './entities/UserData.entity';
 
 @Module({
   imports: [

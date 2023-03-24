@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import UserData from 'src/UserData.entity';
+import UserData from 'src/entities/UserData.entity';
 import * as crypto from 'crypto';
 import { DataSource } from 'typeorm';
 import Token from './token.entity';
