@@ -69,18 +69,4 @@ export class AppController {
       birthDate: user.birthDate,
     };
   }
-
-  @Get('/logout')
-  logout(@Request() req): any {
-    req.session.destroy();
-    return { msg: 'The user session has ended' }
-  }
-
-   /* @Delete('auth/logout')
-  @UseGuards(AuthGuard('bearer'))
-  deleteToken(@Request() req) {
-    const user: UserData = req.user;
-    const tokenRepo = this.dataSource.getRepository(Token);
-    tokenRepo.delete({ user: user });
-  } */
 }
