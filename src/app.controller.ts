@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Request, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Request, Res, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { AppService } from './app.service';
 import UserData from './entities/UserData.entity';
@@ -10,6 +10,7 @@ import { Express } from 'express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 import CarData from './entities/CarData.entity';
+import { Response } from 'express';
 
 @Controller()
 export class AppController {
@@ -101,5 +102,16 @@ export class AppController {
     await carDataRepository.save(carData);
     return carData;
     
+  }
+
+  @Get('uploadedfiles/cars/:carPic')
+  async getCarPicture(@Param('carPic') carPic: string, @Res() res: Response) {
+    const carDataRepository = this.dataSource.getRepository(CarData);
+    const carData = await carDataRepository.findOne({ where: { carPic } });
+    if (!carData || !carData.carPic) {
+      res.status(404).send('Car picture not found');
+      return;
+    }
+    return res.sendFile(carData.carPic, { root: './uploadedFiles/cars' });
   }
 }
