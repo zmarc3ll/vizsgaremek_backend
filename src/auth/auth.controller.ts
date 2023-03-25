@@ -29,7 +29,7 @@ export class AuthController {
   }
 
   @Delete('logout')
-  @UseGuards(AuthGuard('bearer')) //not letting me through (401)
+  @UseGuards(AuthGuard('bearer'))
   async logout(@Headers('authorization') authorization: string) {
     const token = authorization.split(' ')[1];
     await this.authService.deleteTokenFor(token);

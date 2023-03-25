@@ -37,6 +37,6 @@ export class AuthService {
 
     async deleteTokenFor(token: string) {
       const tokenRepo = this.dataSource.getRepository(Token);
-      await tokenRepo.delete({ token });
+      await tokenRepo.delete({ token: token });
     }
 }
