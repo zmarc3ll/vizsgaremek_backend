@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import UserData from './UserData.entity';
 
 @Entity()
@@ -38,6 +38,9 @@ export default class CarData {
 
   @Column()
   license_plate: string;
+
+  @Column({ type: 'blob' })
+  carPic: Buffer;
 
   @ManyToOne(() => UserData, (user) => user.cars)
   users: CarData;
