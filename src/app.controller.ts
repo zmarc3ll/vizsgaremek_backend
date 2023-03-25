@@ -1,11 +1,15 @@
-import { BadRequestException, Body, Controller, Delete, Get, HttpCode, Param, Patch, Post,Request, UseGuards} from '@nestjs/common';
+import {Body, Controller, Delete, Get, HttpCode, Param, Patch, Post,Request, UploadedFile, UseGuards,UseInterceptors} from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { AppService } from './app.service';
 import UserData from './entities/UserData.entity';
 import * as bcrypt from 'bcrypt';
 import ChangeUserData from './entities/ChangeUserData.entity';
 import { AuthGuard } from '@nestjs/passport';
-import Token from './auth/token.entity';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { Express } from 'express';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
+import CarData from './entities/CarData.entity';
 
 @Controller()
 export class AppController {
@@ -69,4 +73,28 @@ export class AppController {
       birthDate: user.birthDate,
     };
   }
+
+   @Post('uploadfile')
+  @UseGuards(AuthGuard('bearer'))
+  @UseInterceptors(FileInterceptor('carFile',{
+    storage: diskStorage({
+      destination: './uploadedFiles/cars',
+      filename: (req, file, cb) => {
+        const randomName = Array(32)
+          .fill(null)
+          .map(() => Math.round(Math.random() * 16).toString(16))
+          .join('');
+        return cb(null, `${randomName}${extname(file.originalname)}`);
+      },
+    })
+  }))
+  async uploadFile(@UploadedFile() file: Express.Multer.File, @Request() req: any,) {
+    const user: UserData = req.user;
+    const carData = new CarData();
+    carData.carPic = file.buffer;
+    //carData.users= user.id;
+    const carDataRepository = this.dataSource.getRepository(CarData);
+    await carDataRepository.save(carData);
+    return carData;
+}
 }
