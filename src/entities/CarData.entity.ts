@@ -39,9 +39,9 @@ export default class CarData {
   @Column()
   license_plate: string;
 
-  @Column({ type: 'blob' })
-  carPic: Buffer;
+  @Column()
+  carPic: string; 
 
   @ManyToOne(() => UserData, (user) => user.cars)
-  users: CarData;
+  userId: UserData;
 }

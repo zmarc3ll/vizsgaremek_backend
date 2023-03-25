@@ -69,6 +69,6 @@ export default class UserData {
   @Column({ default: formatDate(now) })
   registrationDate: Date;
 
-  @OneToMany(() => CarData, (car) => car.users)
+  @OneToMany(() => CarData, (car) => car.userId)
   cars: CarData[];
 }
