@@ -1,4 +1,4 @@
-import {Body, Controller, Delete, Get, HttpCode, Param, Patch, Post,Request, UploadedFile, UseGuards,UseInterceptors} from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Request, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { AppService } from './app.service';
 import UserData from './entities/UserData.entity';
@@ -24,12 +24,12 @@ export class AppController {
     const userRepo = this.dataSource.getRepository(UserData);
     userData.id = undefined;
     const user = new UserData();
-    user.username=userData.username;
+    user.username = userData.username;
     user.password = await bcrypt.hash(userData.password, 5)
     user.passwordAuth = await userData.passwordAuth;
     user.email = userData.email;
-    user.birthDate=userData.birthDate;
-    user.registrationDate=userData.registrationDate;
+    user.birthDate = userData.birthDate;
+    user.registrationDate = userData.registrationDate;
     delete user.passwordAuth;
     await userRepo.save(user);
     delete user.password;
@@ -58,11 +58,11 @@ export class AppController {
     user.username = changeUserData.username;
     user.password = changeUserData.password;
     user.passwordAuth = changeUserData.passwordAuth;
-     await userRepo.save(user);
-     delete user.password;
-     delete user.passwordAuth;
+    await userRepo.save(user);
+    delete user.password;
+    delete user.passwordAuth;
     return user;
-  } 
+  }
 
   @Get('profile')
   @UseGuards(AuthGuard('bearer'))
@@ -74,9 +74,8 @@ export class AppController {
     };
   }
 
-   @Post('uploadfile')
-  @UseGuards(AuthGuard('bearer'))
-  @UseInterceptors(FileInterceptor('carFile',{
+  @Post('uploadfile')
+  @UseInterceptors(FileInterceptor('carFile', {
     storage: diskStorage({
       destination: './uploadedFiles/cars',
       filename: (req, file, cb) => {
@@ -88,13 +87,19 @@ export class AppController {
       },
     })
   }))
-  async uploadFile(@UploadedFile() file: Express.Multer.File, @Request() req: any,) {
-    const user: UserData = req.user;
+  async uploadFile(@UploadedFile() file: Express.Multer.File, @Request() req: UserData,) {
     const carData = new CarData();
-    carData.carPic = file.buffer;
-    //carData.users= user.id;
+    carData.carPic = file.filename;
+    const userId = req.id;
+    const userDataRepository = this.dataSource.getRepository(UserData);
+    const user = await userDataRepository.findOne({
+      where: { id: userId },
+    });
+    carData.userId = user;
+
     const carDataRepository = this.dataSource.getRepository(CarData);
     await carDataRepository.save(carData);
     return carData;
-}
+    
+  }
 }
