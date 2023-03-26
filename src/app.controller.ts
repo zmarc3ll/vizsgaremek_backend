@@ -11,6 +11,7 @@ import { diskStorage } from 'multer';
 import { extname } from 'path';
 import CarData from './entities/CarData.entity';
 import { Response } from 'express';
+import CarPicture from './entities/CarPicture.entity';
 
 @Controller()
 export class AppController {
@@ -41,6 +42,42 @@ export class AppController {
   async listUsers() {
     const users = this.dataSource.getRepository(UserData);
     return await users.find();
+  }
+
+  @Get('car')
+  async listCars() {
+  const cars = this.dataSource.getRepository(CarData);
+  return await cars.find(); 
+  }
+
+  @Post('car')
+  @HttpCode(200)
+  async addCar(@Body() carData: CarData, @Request() req: UserData) {
+    const carRepo = this.dataSource.getRepository(CarData);
+    carData.carId = undefined;
+    const car = new CarData();
+    car.brand =carData.brand;
+    car.model =carData.model;
+    car.modelYear =carData.modelYear;
+    car.fuelType=carData.fuelType;
+    car.carPower=carData.carPower;
+    car.gearType=carData.gearType;
+    car.color=carData.color;
+    car.chassisType=carData.chassisType;
+    car.doors=carData.doors;
+    car.fuelEconomy=carData.fuelEconomy;
+    car.license_plate=carData.license_plate;
+    car.givenName=carData.givenName;
+    const userId = req.id;
+    const userDataRepository = this.dataSource.getRepository(UserData);
+    const user = await userDataRepository.findOne({
+      where: { id: userId },
+    });
+    car.userId = user;
+    carData.userId = user;
+    car.userId = carData.userId;
+    await carRepo.save(car);
+    return car
   }
 
   @Delete('user/:id')
@@ -88,30 +125,30 @@ export class AppController {
       },
     })
   }))
-  async uploadFile(@UploadedFile() file: Express.Multer.File, @Request() req: UserData,) {
-    const carData = new CarData();
-    carData.carPic = file.filename;
-    const userId = req.id;
-    const userDataRepository = this.dataSource.getRepository(UserData);
-    const user = await userDataRepository.findOne({
-      where: { id: userId },
-    });
-    carData.userId = user;
-
+  async uploadFile(@UploadedFile() file: Express.Multer.File, @Request() req: CarData,) {
+    const carPicture = new CarPicture();
+    carPicture.carPic = file.filename;
+    const carId = req.carId;
     const carDataRepository = this.dataSource.getRepository(CarData);
-    await carDataRepository.save(carData);
-    return carData;
+    const car = await carDataRepository.findOne({
+      where: { carId: carId },
+    });
+    carPicture.carsId = car;
+
+    const carPictureRepository = this.dataSource.getRepository(CarPicture);
+    await carPictureRepository.save(carPicture);
+    return carPicture;
     
   }
 
   @Get('uploadedfiles/cars/:carPic')
   async getCarPicture(@Param('carPic') carPic: string, @Res() res: Response) {
-    const carDataRepository = this.dataSource.getRepository(CarData);
-    const carData = await carDataRepository.findOne({ where: { carPic } });
-    if (!carData || !carData.carPic) {
+    const carPictureRepository = this.dataSource.getRepository(CarPicture);
+    const carPicture = await carPictureRepository.findOne({ where: { carPic } });
+    if (!carPicture || !carPicture.carPic) {
       res.status(404).send('Car picture not found');
       return;
     }
-    return res.sendFile(carData.carPic, { root: './uploadedFiles/cars' });
+    return res.sendFile(carPicture.carPic, { root: './uploadedFiles/cars' });
   }
 }
