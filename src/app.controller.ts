@@ -131,7 +131,7 @@ export class AppController {
     const carId = req.carId;
     const carDataRepository = this.dataSource.getRepository(CarData);
     const car = await carDataRepository.findOne({
-      where: { carId: carId },
+      where: { carId: carId },//wrong id getting attached
     });
     carPicture.carsId = car;
 
