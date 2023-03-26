@@ -5,6 +5,7 @@ import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import Token from './auth/token.entity';
 import CarData from './entities/CarData.entity';
+import CarPicture from './entities/CarPicture.entity';
 import UserData from './entities/UserData.entity';
 
 @Module({
@@ -16,7 +17,7 @@ import UserData from './entities/UserData.entity';
       password: '',
       database: 'vizsgaremek',
       entities: [
-        UserData, CarData, Token],
+        UserData, CarData, Token, CarPicture],
       synchronize: true,
     }),
     AuthModule,
