@@ -1,9 +1,8 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Request, Res, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Req, Request, Res, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { AppService } from './app.service';
 import UserData from './entities/UserData.entity';
 import * as bcrypt from 'bcrypt';
-import ChangeUserData from './entities/ChangeUserData.entity';
 import { AuthGuard } from '@nestjs/passport';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Express } from 'express';
@@ -12,6 +11,11 @@ import { extname } from 'path';
 import CarData from './entities/CarData.entity';
 import { Response } from 'express';
 import CarPicture from './entities/CarPicture.entity';
+
+interface AuthenticatedRequest extends Request {
+  user: UserData;
+  car: CarData;
+}
 
 @Controller()
 export class AppController {
@@ -44,10 +48,20 @@ export class AppController {
     return await users.find();
   }
 
+  @Get('usersCar/:id')
+  async getUsersCarById(@Req() req: AuthenticatedRequest, @Param('id') id: number) {
+    const carRepo = this.dataSource.getRepository(CarData);
+    const userDataRepository = this.dataSource.getRepository(UserData);
+    const user = await userDataRepository.findOne({ where: { id } });
+    const car = await carRepo.findOne({ where: { carId: req.car.carId }, relations: ['userId'] });
+    car.userId = user;
+    await carRepo.save(car);
+  }
+
   @Get('car')
   async listCars() {
-  const cars = this.dataSource.getRepository(CarData);
-  return await cars.find(); 
+    const cars = this.dataSource.getRepository(CarData);
+    return await cars.find();
   }
 
   @Post('car')
@@ -56,18 +70,18 @@ export class AppController {
     const carRepo = this.dataSource.getRepository(CarData);
     carData.carId = undefined;
     const car = new CarData();
-    car.brand =carData.brand;
-    car.model =carData.model;
-    car.modelYear =carData.modelYear;
-    car.fuelType=carData.fuelType;
-    car.carPower=carData.carPower;
-    car.gearType=carData.gearType;
-    car.color=carData.color;
-    car.chassisType=carData.chassisType;
-    car.doors=carData.doors;
-    car.fuelEconomy=carData.fuelEconomy;
-    car.license_plate=carData.license_plate;
-    car.givenName=carData.givenName;
+    car.brand = carData.brand;
+    car.model = carData.model;
+    car.modelYear = carData.modelYear;
+    car.fuelType = carData.fuelType;
+    car.carPower = carData.carPower;
+    car.gearType = carData.gearType;
+    car.color = carData.color;
+    car.chassisType = carData.chassisType;
+    car.doors = carData.doors;
+    car.fuelEconomy = carData.fuelEconomy;
+    car.license_plate = carData.license_plate;
+    car.givenName = carData.givenName;
     const userId = req.id;
     const userDataRepository = this.dataSource.getRepository(UserData);
     const user = await userDataRepository.findOne({
@@ -86,21 +100,21 @@ export class AppController {
     users.delete(id);
   }
 
-  @Patch('/user/:id')
-  @HttpCode(200)
-  async ChangeUserData(
-    @Param('id') id: number,
-    @Body() changeUserData: ChangeUserData) {
-    const userRepo = this.dataSource.getRepository(UserData);
-    const user = await userRepo.findOneBy({ id: id });
-    user.username = changeUserData.username;
-    user.password = changeUserData.password;
-    user.passwordAuth = changeUserData.passwordAuth;
-    await userRepo.save(user);
-    delete user.password;
-    delete user.passwordAuth;
-    return user;
-  }
+  /*   @Patch('/user/:id')
+    @HttpCode(200)
+    async ChangeUserData(
+      @Param('id') id: number,
+      @Body() changeUserData: ChangeUserData) {
+      const userRepo = this.dataSource.getRepository(UserData);
+      const user = await userRepo.findOneBy({ id: id });
+      user.username = changeUserData.username;
+      user.password = changeUserData.password;
+      user.passwordAuth = changeUserData.passwordAuth;
+      await userRepo.save(user);
+      delete user.password;
+      delete user.passwordAuth;
+      return user; 
+    }*/
 
   @Get('profile')
   @UseGuards(AuthGuard('bearer'))
@@ -131,14 +145,14 @@ export class AppController {
     const carId = req.carId;
     const carDataRepository = this.dataSource.getRepository(CarData);
     const car = await carDataRepository.findOne({
-      where: { carId: carId },//wrong id getting attached
+      where: { carId: carId }, //wrong id getting attached
     });
     carPicture.carsId = car;
 
     const carPictureRepository = this.dataSource.getRepository(CarPicture);
     await carPictureRepository.save(carPicture);
     return carPicture;
-    
+
   }
 
   @Get('uploadedfiles/cars/:carPic')
