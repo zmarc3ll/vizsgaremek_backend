@@ -22,9 +22,9 @@ export class AuthController {
     if (!await bcrypt.compare(loginData.password, user.password)) {
       throw new UnauthorizedException('Hibás felhasználónév vagy jelszó!');
     }
-
     return {
       token: await this.authService.generateTokenFor(user),
+      userId: user.id
     };
   }
 
