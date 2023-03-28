@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Req, Request, Res, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Query, Req, Request, Res, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { AppService } from './app.service';
 import UserData from './entities/UserData.entity';
@@ -7,7 +7,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Express } from 'express';
 import { diskStorage } from 'multer';
-import { extname } from 'path';
+import path, { extname } from 'path';
 import CarData from './entities/CarData.entity';
 import { Response } from 'express';
 import CarPicture from './entities/CarPicture.entity';
@@ -15,6 +15,7 @@ import CarPicture from './entities/CarPicture.entity';
 interface AuthenticatedRequest extends Request {
   user: UserData;
   car: CarData;
+  carPic: CarPicture;
 }
 
 @Controller()
@@ -49,19 +50,24 @@ export class AppController {
   }
 
   @Get('usersCar/:id')
-  async getUsersCarById(@Req() req: AuthenticatedRequest, @Param('id') id: number) {
+  async getUsersCarById(@Param('id') userId: number) {
     const carRepo = this.dataSource.getRepository(CarData);
-    const userDataRepository = this.dataSource.getRepository(UserData);
-    const user = await userDataRepository.findOne({ where: { id } });
-    const car = await carRepo.findOne({ where: { carId: req.car.carId }, relations: ['userId'] });
-    car.userId = user;
-    await carRepo.save(car);
+    const usersCar = await carRepo.findOne({ where: { userId: { id: userId } } });
+    return usersCar;
   }
 
   @Get('car')
   async listCars() {
     const cars = this.dataSource.getRepository(CarData);
     return await cars.find();
+  }
+
+  @Get('carPic')
+  async getCarPic(@Req() req: AuthenticatedRequest) {
+    const carPicRepo = this.dataSource.getRepository(CarPicture);
+    /* const carRepo = this.dataSource.getRepository(CarData);
+    const carPic = await carPicRepo.findOne({ where: { carId: req.car.carId }, relations: ['carId'] }); */ //maybe not correct
+    return carPicRepo.find();
   }
 
   @Post('car')
