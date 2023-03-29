@@ -4,9 +4,7 @@ import { DataSource } from 'typeorm';
 import loginDto from './login.dto';
 import * as bcrypt from 'bcrypt';
 import { AuthService } from './auth.service';
-import { IncomingHttpHeaders } from 'http';
 import { AuthGuard } from '@nestjs/passport';
-import Token from './token.entity';
 
 @Controller('auth')
 export class AuthController {
@@ -24,7 +22,7 @@ export class AuthController {
     }
     return {
       token: await this.authService.generateTokenFor(user),
-      userId: user.id
+      userId: user.id,
     };
   }
 
