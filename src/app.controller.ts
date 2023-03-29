@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Query, Req, Request, Res, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, NotFoundException, Param, Patch, Post, Query, Req, Request, Res, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { AppService } from './app.service';
 import UserData from './entities/UserData.entity';
@@ -62,13 +62,33 @@ export class AppController {
     return await cars.find();
   }
 
-  @Get('carPic')
-  async getCarPic(@Req() req: AuthenticatedRequest) {
+ /*  @Get('carPic')
+  async getCarPic( @Request() req: CarData) {
     const carPicRepo = this.dataSource.getRepository(CarPicture);
-    /* const carRepo = this.dataSource.getRepository(CarData);
-    const carPic = await carPicRepo.findOne({ where: { carId: req.car.carId }, relations: ['carId'] }); */ //maybe not correct
-    return carPicRepo.find();
+     const carRepo = this.dataSource.getRepository(CarData);
+     const car = req.carId
+     const carId = await carPicRepo.findOne({
+      where: { carsId: car },
+    }); //maybe not correct
+    return await carId;
   }
+ */
+  @Get('carPic')
+async getCarPic(@Request() req: CarData) {
+  const carPicRepo = this.dataSource.getRepository(CarPicture);
+  const carId = req.carId; // Assuming this is the car ID you want to find pictures for
+
+  // Find the car pictures for the given car ID
+  const carPictures = await carPicRepo.find({
+    where: {
+      carsId: {
+        carId: carId
+      }
+    }
+  });
+
+  return carPictures; 
+}
 
   @Post('car')
   @HttpCode(200)
@@ -145,20 +165,20 @@ export class AppController {
       },
     })
   }))
-  async uploadFile(@UploadedFile() file: Express.Multer.File, @Request() req: CarData,) {
+   async uploadFile(@UploadedFile() file: Express.Multer.File, @Request() req: CarData,) {
     const carPicture = new CarPicture();
     carPicture.carPic = file.filename;
-    const carId = req.carId;
+     const carId = req.carId;
+    console.log('carId:',req.carId);
     const carDataRepository = this.dataSource.getRepository(CarData);
     const car = await carDataRepository.findOne({
-      where: { carId: carId }, //wrong id getting attached
+      where: { carId: carId },
     });
     carPicture.carsId = car;
 
     const carPictureRepository = this.dataSource.getRepository(CarPicture);
     await carPictureRepository.save(carPicture);
-    return carPicture;
-
+    return carPicture; 
   }
 
   @Get('uploadedfiles/cars/:carPic')
