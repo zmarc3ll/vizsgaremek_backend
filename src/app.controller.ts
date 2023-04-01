@@ -169,7 +169,6 @@ async getCarPic(@Request() req: CarData) {
     const carPicture = new CarPicture();
     carPicture.carPic = file.filename;
      const carId = req.carId;
-    console.log('carId:',req.carId);
     const carDataRepository = this.dataSource.getRepository(CarData);
     const car = await carDataRepository.findOne({
       where: { carId: carId },
