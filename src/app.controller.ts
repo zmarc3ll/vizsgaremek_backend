@@ -7,7 +7,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Express } from 'express';
 import { diskStorage } from 'multer';
-import path, { extname } from 'path';
+import { extname } from 'path';
 import CarData from './entities/CarData.entity';
 import { Response } from 'express';
 import CarPicture from './entities/CarPicture.entity';
@@ -52,8 +52,8 @@ export class AppController {
   @Get('usersCar/:id')
   async getUsersCarById(@Param('id') userId: number) {
     const carRepo = this.dataSource.getRepository(CarData);
-    const usersCar = await carRepo.findOne({ where: { userId: { id: userId } } });
-    return usersCar;
+    const usersCar = await carRepo.find({ where: { userId: { id: userId } } });
+    return {cars: usersCar};
   }
 
   @Get('car')
@@ -62,37 +62,28 @@ export class AppController {
     return await cars.find();
   }
 
- /*  @Get('carPic')
-  async getCarPic( @Request() req: CarData) {
-    const carPicRepo = this.dataSource.getRepository(CarPicture);
-     const carRepo = this.dataSource.getRepository(CarData);
-     const car = req.carId
-     const carId = await carPicRepo.findOne({
-      where: { carsId: car },
-    }); //maybe not correct
-    return await carId;
-  }
- */
-  @Get('carPic')
-async getCarPic(@Request() req: CarData) {
+   @Get('carPic/:id')
+async getCarPic(@Param('id') userId: number) {
   const carPicRepo = this.dataSource.getRepository(CarPicture);
-  const carId = req.carId; // Assuming this is the car ID you want to find pictures for
-
-  // Find the car pictures for the given car ID
+  const carRepo = this.dataSource.getRepository(CarData);
+  const carId = await carRepo.find({ where: { userId: { id: userId } } }); // Assuming this is the car ID you want to find pictures for
+  if (carId.length > 0) {
+    const carID = carId[0].carId;
   const carPictures = await carPicRepo.find({
     where: {
       carsId: {
-        carId: carId
+        carId: carID
       }
     }
   });
-
   return carPictures; 
 }
+return [];
+} 
 
-  @Post('car')
+  @Post('car/:id')
   @HttpCode(200)
-  async addCar(@Body() carData: CarData, @Request() req: UserData) {
+  async addCar(@Body() carData: CarData, @Request() req: UserData,@Param('id') usersId: number) {
     const carRepo = this.dataSource.getRepository(CarData);
     carData.carId = undefined;
     const car = new CarData();
@@ -108,7 +99,7 @@ async getCarPic(@Request() req: CarData) {
     car.fuelEconomy = carData.fuelEconomy;
     car.license_plate = carData.license_plate;
     car.givenName = carData.givenName;
-    const userId = req.id;
+    const userId = usersId;
     const userDataRepository = this.dataSource.getRepository(UserData);
     const user = await userDataRepository.findOne({
       where: { id: userId },
@@ -152,7 +143,7 @@ async getCarPic(@Request() req: CarData) {
     };
   }
 
-  @Post('uploadfile')
+  @Post('uploadfile/:id')
   @UseInterceptors(FileInterceptor('carFile', {
     storage: diskStorage({
       destination: './uploadedFiles/cars',
@@ -165,19 +156,25 @@ async getCarPic(@Request() req: CarData) {
       },
     })
   }))
-   async uploadFile(@UploadedFile() file: Express.Multer.File, @Request() req: CarData,) {
+   async uploadFile(@UploadedFile() file: Express.Multer.File, @Request() req: CarData, @Param('id') usersId: number) {
     const carPicture = new CarPicture();
     carPicture.carPic = file.filename;
-     const carId = req.carId;
+    const carRepo = this.dataSource.getRepository(CarData);
+    const carId = await carRepo.find({ where: { userId: { id: usersId } } }); // Assuming this is the car ID you want to find pictures for
+    if (carId.length > 0) {
+    const carID = carId[0].carId;
+     //const carId = req.carId;
     const carDataRepository = this.dataSource.getRepository(CarData);
     const car = await carDataRepository.findOne({
-      where: { carId: carId },
+      where: { carId: carID },
     });
     carPicture.carsId = car;
 
     const carPictureRepository = this.dataSource.getRepository(CarPicture);
     await carPictureRepository.save(carPicture);
     return carPicture; 
+  }
+  return [];
   }
 
   @Get('uploadedfiles/cars/:carPic')
