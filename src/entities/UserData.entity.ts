@@ -71,8 +71,4 @@ export default class UserData {
 
   @OneToMany(() => CarData, (car) => car.userId)
   cars: CarData[];
-  
-  getUserId(): number {
-    return this.id;
-  }
 }
