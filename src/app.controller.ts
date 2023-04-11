@@ -11,6 +11,7 @@ import { extname } from 'path';
 import CarData from './entities/CarData.entity';
 import { Response } from 'express';
 import CarPicture from './entities/CarPicture.entity';
+import CalendarData from './entities/CalendarData.entity';
 
 interface AuthenticatedRequest extends Request {
   user: UserData;
@@ -53,7 +54,7 @@ export class AppController {
   async getUsersCarById(@Param('id') userId: number) {
     const carRepo = this.dataSource.getRepository(CarData);
     const usersCar = await carRepo.find({ where: { userId: { id: userId } } });
-    return {cars: usersCar};
+    return { cars: usersCar };
   }
 
   @Get('car')
@@ -62,28 +63,56 @@ export class AppController {
     return await cars.find();
   }
 
-   @Get('carPic/:id')
-async getCarPic(@Param('id') userId: number) {
-  const carPicRepo = this.dataSource.getRepository(CarPicture);
-  const carRepo = this.dataSource.getRepository(CarData);
-  const carId = await carRepo.find({ where: { userId: { id: userId } } }); // Assuming this is the car ID you want to find pictures for
-  if (carId.length > 0) {
-    const carID = carId[0].carId;
-  const carPictures = await carPicRepo.find({
-    where: {
-      carsId: {
-        carId: carID
-      }
+  @Get('carPic/:id')
+  async getCarPic(@Param('id') userId: number) {
+    const carPicRepo = this.dataSource.getRepository(CarPicture);
+    const carRepo = this.dataSource.getRepository(CarData);
+    const carId = await carRepo.find({ where: { userId: { id: userId } } }); // Assuming this is the car ID you want to find pictures for
+    if (carId.length > 0) {
+      const carID = carId[0].carId;
+      const carPictures = await carPicRepo.find({
+        where: {
+          carsId: {
+            carId: carID
+          }
+        }
+      });
+      return carPictures;
     }
-  });
-  return carPictures; 
-}
-return [];
-} 
+    return [];
+  }
+
+  //TODO:
+  @Post('calendarEvent/:id')
+  @HttpCode(200)
+  async addEvent(@Body() calendarData: CalendarData, @Param('id') usersId: number) {
+    const calendarRepo = this.dataSource.getRepository(CalendarData);
+    calendarData.calId = undefined;
+    const event = new CalendarData();
+    event.eventName = calendarData.eventName;
+    event.EventDate = calendarData.EventDate;
+    event.comment = calendarData.comment;
+    const userId = usersId;
+    const carDataRepository = this.dataSource.getRepository(CarData);
+    const userDataRepository = this.dataSource.getRepository(UserData);
+    const user = await userDataRepository.findOne({
+      where: { id: userId },
+    });
+    /* let carsUserId: number;
+    carsUserId = user.getUserId();
+    const car = await carDataRepository.findOne({
+      where: {userId: carsUserId}
+    })
+    event.carData = car.carId; */
+
+    // --TODO:-- megkeresni userId alapjan az autot, majd carId alapjan hozzacsatolni a calendarhoz a carId- t.
+    await calendarRepo.save(event);
+    return event;
+  }
 
   @Post('car/:id')
   @HttpCode(200)
-  async addCar(@Body() carData: CarData, @Request() req: UserData,@Param('id') usersId: number) {
+  async addCar(@Body() carData: CarData, @Param('id') usersId: number) {
     const carRepo = this.dataSource.getRepository(CarData);
     carData.carId = undefined;
     const car = new CarData();
@@ -115,6 +144,12 @@ return [];
   deleteUser(@Param('id') id: number) {
     const users = this.dataSource.getRepository(UserData);
     users.delete(id);
+  }
+
+  @Delete('calendarEvent/:id')
+  deleteEvent(@Param('id') id: number) {
+    const event = this.dataSource.getRepository(CalendarData);
+    event.delete(id);
   }
 
   /*   @Patch('/user/:id')
@@ -156,25 +191,25 @@ return [];
       },
     })
   }))
-   async uploadFile(@UploadedFile() file: Express.Multer.File, @Request() req: CarData, @Param('id') usersId: number) {
+  async uploadFile(@UploadedFile() file: Express.Multer.File, @Request() req: CarData, @Param('id') usersId: number) {
     const carPicture = new CarPicture();
     carPicture.carPic = file.filename;
     const carRepo = this.dataSource.getRepository(CarData);
     const carId = await carRepo.find({ where: { userId: { id: usersId } } }); // Assuming this is the car ID you want to find pictures for
     if (carId.length > 0) {
-    const carID = carId[0].carId;
-     //const carId = req.carId;
-    const carDataRepository = this.dataSource.getRepository(CarData);
-    const car = await carDataRepository.findOne({
-      where: { carId: carID },
-    });
-    carPicture.carsId = car;
+      const carID = carId[0].carId;
+      //const carId = req.carId;
+      const carDataRepository = this.dataSource.getRepository(CarData);
+      const car = await carDataRepository.findOne({
+        where: { carId: carID },
+      });
+      carPicture.carsId = car;
 
-    const carPictureRepository = this.dataSource.getRepository(CarPicture);
-    await carPictureRepository.save(carPicture);
-    return carPicture; 
-  }
-  return [];
+      const carPictureRepository = this.dataSource.getRepository(CarPicture);
+      await carPictureRepository.save(carPicture);
+      return carPicture;
+    }
+    return [];
   }
 
   @Get('uploadedfiles/cars/:carPic')
