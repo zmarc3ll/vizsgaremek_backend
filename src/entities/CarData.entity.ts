@@ -1,6 +1,7 @@
 import { Column, Entity, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 import CarPicture from './CarPicture.entity';
 import UserData from './UserData.entity';
+import CalendarData from './CalendarData.entity';
 
 @Entity()
 export default class CarData {
@@ -45,6 +46,9 @@ export default class CarData {
 
   @ManyToOne(() => UserData, (user) => user.cars)
   userId: UserData;
+
+  @OneToMany(() => CalendarData, (calendar) => calendar.carData)
+  calendarData: CalendarData[];
 
   @OneToMany(() => CarPicture, (picture) => picture.carsId)
   pictures: CarPicture[];
