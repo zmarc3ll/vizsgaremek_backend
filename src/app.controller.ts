@@ -63,6 +63,22 @@ export class AppController {
     return await cars.find();
   }
 
+  @Get('calendarEvent/:id')
+  async getCalendarEvents(@Param('id') userId: number) {
+    const calendarRepo = this.dataSource.getRepository(CalendarData);
+    const carDataRepository = this.dataSource.getRepository(CarData);
+    const userDataRepository = this.dataSource.getRepository(UserData);
+    const user = await userDataRepository.findOne({
+      where: { id: userId },
+    });
+    const car = await carDataRepository.findOne({
+      where: {userId: user}
+    })
+
+    const event = await calendarRepo.find({where: {carData: car}})
+    return {calDatas: event};
+  }
+
   @Get('carPic/:id')
   async getCarPic(@Param('id') userId: number) {
     const carPicRepo = this.dataSource.getRepository(CarPicture);
@@ -82,15 +98,14 @@ export class AppController {
     return [];
   }
 
-  //TODO:
   @Post('calendarEvent/:id')
   @HttpCode(200)
   async addEvent(@Body() calendarData: CalendarData, @Param('id') usersId: number) {
     const calendarRepo = this.dataSource.getRepository(CalendarData);
     calendarData.calId = undefined;
     const event = new CalendarData();
-    event.eventName = calendarData.eventName;
-    event.EventDate = calendarData.EventDate;
+    event.title = calendarData.title;
+    event.start = calendarData.start;
     event.comment = calendarData.comment;
     const userId = usersId;
     const carDataRepository = this.dataSource.getRepository(CarData);
@@ -98,14 +113,12 @@ export class AppController {
     const user = await userDataRepository.findOne({
       where: { id: userId },
     });
-    /* let carsUserId: number;
-    carsUserId = user.getUserId();
     const car = await carDataRepository.findOne({
-      where: {userId: carsUserId}
+      where: {userId: user}
     })
-    event.carData = car.carId; */
-
-    // --TODO:-- megkeresni userId alapjan az autot, majd carId alapjan hozzacsatolni a calendarhoz a carId- t.
+    event.carData = car;
+    calendarData.carData = car;
+    event.carData = calendarData.carData;
     await calendarRepo.save(event);
     return event;
   }
