@@ -8,10 +8,10 @@ export default class CalendarData {
     calId: number;
 
     @Column()
-    eventName: string;
+    title: string;
 
     @Column()
-    EventDate: Date;
+    start: string;    
 
     @Column()
     comment: string;
