@@ -16,13 +16,6 @@ export default class CalendarData {
     @Column()
     comment: string;
 
-    /* @ManyToOne(() => CarData, (carData) => carData.calendarData)
-    @JoinColumn()
-    carData: CarData; */
-
-    //REDO to one to many bc multiple events to one car
-    @OneToOne(() => CarData)
-    @JoinColumn()
+    @ManyToOne(() => CarData, (carData) => carData.calendarData)
     carData: CarData;
-     
 }
