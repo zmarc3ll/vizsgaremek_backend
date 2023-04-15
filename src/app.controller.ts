@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, HttpCode, NotFoundException, Param, Patch, Post, Query, Req, Request, Res, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
-import { DataSource } from 'typeorm';
+import { DataSource, MoreThanOrEqual } from 'typeorm';
 import { AppService } from './app.service';
 import UserData from './entities/UserData.entity';
 import * as bcrypt from 'bcrypt';
@@ -12,6 +12,7 @@ import CarData from './entities/CarData.entity';
 import { Response } from 'express';
 import CarPicture from './entities/CarPicture.entity';
 import CalendarData from './entities/CalendarData.entity';
+import { start } from 'repl';
 
 interface AuthenticatedRequest extends Request {
   user: UserData;
@@ -64,7 +65,7 @@ export class AppController {
   }
 
   @Get('calendarEvent/:id')
-  async getCalendarEvents(@Param('id') userId: number) {
+  async getCalendarEvents(@Param('id') userId: number, @Query('limit') limit: number, @Query('from') from?: string) {
     const calendarRepo = this.dataSource.getRepository(CalendarData);
     const carDataRepository = this.dataSource.getRepository(CarData);
     const userDataRepository = this.dataSource.getRepository(UserData);
@@ -74,8 +75,9 @@ export class AppController {
     const car = await carDataRepository.findOne({
       where: {userId: user}
     })
-
-    const event = await calendarRepo.find({where: {carData: car}})
+    let where = {carData: car}
+    let where2 = {carData: car, start: MoreThanOrEqual(from)}
+    const event = await calendarRepo.find({where: (from == undefined? where : where2), take: limit, order: {start: 'ASC'}})
     return {calDatas: event};
   }
 
@@ -83,7 +85,7 @@ export class AppController {
   async getCarPic(@Param('id') userId: number) {
     const carPicRepo = this.dataSource.getRepository(CarPicture);
     const carRepo = this.dataSource.getRepository(CarData);
-    const carId = await carRepo.find({ where: { userId: { id: userId } } }); // Assuming this is the car ID you want to find pictures for
+    const carId = await carRepo.find({ where: { userId: { id: userId } } });
     if (carId.length > 0) {
       const carID = carId[0].carId;
       const carPictures = await carPicRepo.find({

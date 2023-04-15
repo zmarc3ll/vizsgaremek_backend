@@ -1,5 +1,6 @@
 import { Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import CarData from "./CarData.entity";
+import { IsOptional, Length, MaxLength } from "class-validator";
 
 @Entity()
 export default class CalendarData {
@@ -14,6 +15,8 @@ export default class CalendarData {
     start: string;    
 
     @Column()
+    @MaxLength(100)
+    @IsOptional()
     comment: string;
 
     @ManyToOne(() => CarData, (carData) => carData.calendarData)
