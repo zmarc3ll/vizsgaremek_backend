@@ -35,7 +35,7 @@ export class AppController {
     const user = new UserData();
     user.username = userData.username;
     user.password = await bcrypt.hash(userData.password, 5)
-    user.passwordAuth = await userData.passwordAuth;
+    user.passwordAuth = userData.passwordAuth;
     user.email = userData.email;
     user.birthDate = userData.birthDate;
     user.registrationDate = userData.registrationDate;

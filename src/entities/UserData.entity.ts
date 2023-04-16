@@ -53,7 +53,6 @@ export default class UserData {
 
   @IsString()
   @MinLength(6)
-  @Column()
   passwordAuth: string; //the password again to make sure it matches.
 
   @IsEmail()
