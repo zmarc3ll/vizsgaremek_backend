@@ -2,6 +2,7 @@ import { Column, Entity, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn 
 import CarPicture from './CarPicture.entity';
 import UserData from './UserData.entity';
 import CalendarData from './CalendarData.entity';
+import ChartData from './ChartData.entity';
 
 @Entity()
 export default class CarData {
@@ -52,4 +53,7 @@ export default class CarData {
 
   @OneToMany(() => CarPicture, (picture) => picture.carsId)
   pictures: CarPicture[];
+
+  /* @OneToMany(() => ChartData, (chart) => chart.carData)
+  chartData: ChartData[]; */
 }
