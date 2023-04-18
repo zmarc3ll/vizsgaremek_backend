@@ -13,6 +13,7 @@ import { Response } from 'express';
 import CarPicture from './entities/CarPicture.entity';
 import CalendarData from './entities/CalendarData.entity';
 import { start } from 'repl';
+import ChartData from './entities/ChartData.entity';
 
 interface AuthenticatedRequest extends Request {
   user: UserData;
@@ -167,21 +168,49 @@ export class AppController {
     event.delete(id);
   }
 
-  /*   @Patch('/user/:id')
-    @HttpCode(200)
-    async ChangeUserData(
-      @Param('id') id: number,
-      @Body() changeUserData: ChangeUserData) {
-      const userRepo = this.dataSource.getRepository(UserData);
-      const user = await userRepo.findOneBy({ id: id });
-      user.username = changeUserData.username;
-      user.password = changeUserData.password;
-      user.passwordAuth = changeUserData.passwordAuth;
-      await userRepo.save(user);
-      delete user.password;
-      delete user.passwordAuth;
-      return user; 
-    }*/
+  @Get('chart/:id')
+  async getChartData(@Param('id') userId: number){
+    const chartDataRepo = this.dataSource.getRepository(ChartData);
+    const carRepo = this.dataSource.getRepository(CarData);
+    const carId = await carRepo.find({ where: { userId: { id: userId } } });
+    if (carId.length > 0) {
+      const carID = carId[0].carId;
+      const chartData = await chartDataRepo.find({
+        where: {
+          carData: {
+            carId: carID,
+          }
+        }
+      });
+      const sortedChartData = chartData.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      return { chart: sortedChartData };
+    }
+    return [];
+  }
+
+  @Post('chart/:id')
+  @HttpCode(200)
+  async addChartData(@Body()chartData: ChartData, @Param('id') usersId: number) {
+    const chartDataRepo = this.dataSource.getRepository(ChartData);
+    chartData.chartId = undefined;
+    const chart = new ChartData();
+    chart.speedometer = chartData.speedometer;
+    chart.date = chartData.date;
+    const userId = usersId;
+    const carDataRepository = this.dataSource.getRepository(CarData);
+    const userDataRepository = this.dataSource.getRepository(UserData);
+    const user = await userDataRepository.findOne({
+      where: { id: userId },
+    });
+    const car = await carDataRepository.findOne({
+      where: {userId: user}
+    })
+    chart.carData = car;
+    chartData.carData = car;
+    chart.carData = chartData.carData;
+    await chartDataRepo.save(chart);
+    return chart;
+  }
 
   @Get('profile')
   @UseGuards(AuthGuard('bearer'))
