@@ -1,8 +1,8 @@
-import { IsDate } from "class-validator";
-import { Column, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { IsDate, IsOptional } from "class-validator";
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import CarData from "./CarData.entity";
 
-
+@Entity()
 export default class ChartData {
 
     @PrimaryGeneratedColumn()
@@ -10,11 +10,10 @@ export default class ChartData {
 
     @Column()
     speedometer: number;
-
+    
     @Column()
-    @IsDate()
-    date: Date;
+    date: string;
 
-    /* @ManyToOne(() => CarData, (carData) => carData.chartData)
-    carData: CarData; */
+    @ManyToOne(() => CarData, (carData) => carData.chartData)
+    carData: CarData;
 }
