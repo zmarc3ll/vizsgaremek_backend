@@ -54,6 +54,6 @@ export default class CarData {
   @OneToMany(() => CarPicture, (picture) => picture.carsId)
   pictures: CarPicture[];
 
-  /* @OneToMany(() => ChartData, (chart) => chart.carData)
-  chartData: ChartData[]; */
+  @OneToMany(() => ChartData, (chart) => chart.carData)
+  chartData: ChartData[];
 }
