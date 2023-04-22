@@ -14,6 +14,7 @@ import CarPicture from './entities/CarPicture.entity';
 import CalendarData from './entities/CalendarData.entity';
 import { start } from 'repl';
 import ChartData from './entities/ChartData.entity';
+import DocumentData from './entities/DocumentData.entity';
 
 @Controller()
 export class AppController {
@@ -95,6 +96,45 @@ export class AppController {
     return [];
   }
 
+  @Get('documents/:id')
+  async getUsersDocuments(@Param('id') userId: number) {
+    const documentRepo = this.dataSource.getRepository(DocumentData);
+    const carDataRepository = this.dataSource.getRepository(CarData);
+    const userDataRepository = this.dataSource.getRepository(UserData);
+    const user = await userDataRepository.findOne({
+      where: { id: userId },
+    });
+    const car = await carDataRepository.findOne({
+      where: {userId: user}
+    })
+    const doc = await documentRepo.find({where: {carsData: car},order: {date: 'ASC'}});
+    return {docDatas: doc};
+  }
+
+  @Post('documents/:id')
+  @HttpCode(200)
+  async addDocument(@Body() documentData: DocumentData, @Param('id') usersId: number) {
+    const documentRepo = this.dataSource.getRepository(DocumentData);
+    documentData.docId = undefined;
+    const doc = new DocumentData();
+    doc.name = documentData.name;
+    doc.date = documentData.date;
+    const userId = usersId;
+    const carDataRepository = this.dataSource.getRepository(CarData);
+    const userDataRepository = this.dataSource.getRepository(UserData);
+    const user = await userDataRepository.findOne({
+      where: { id: userId },
+    });
+    const car = await carDataRepository.findOne({
+      where: {userId: user}
+    })
+    doc.carsData = car;
+    documentData.carsData = car;
+    doc.carsData = documentData.carsData;
+    await documentRepo.save(doc);
+    return doc;
+  }
+
   @Post('calendarEvent/:id')
   @HttpCode(200)
   async addEvent(@Body() calendarData: CalendarData, @Param('id') usersId: number) {
@@ -160,6 +200,12 @@ export class AppController {
   deleteEvent(@Param('id') id: number) {
     const event = this.dataSource.getRepository(CalendarData);
     event.delete(id);
+  }
+
+  @Delete('documents/:id')
+  deleteDocs(@Param('id') id: number) {
+    const docs = this.dataSource.getRepository(DocumentData);
+    docs.delete(id);
   }
 
   @Get('chart/:id')
