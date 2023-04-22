@@ -3,6 +3,7 @@ import CarPicture from './CarPicture.entity';
 import UserData from './UserData.entity';
 import CalendarData from './CalendarData.entity';
 import ChartData from './ChartData.entity';
+import DocumentData from './DocumentData.entity';
 
 @Entity()
 export default class CarData {
@@ -56,4 +57,7 @@ export default class CarData {
 
   @OneToMany(() => ChartData, (chart) => chart.carData)
   chartData: ChartData[];
+
+  @OneToMany(() => DocumentData, (doc) => doc.carsData)
+  docData: DocumentData[];
 }
