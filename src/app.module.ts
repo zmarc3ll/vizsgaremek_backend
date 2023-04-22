@@ -9,6 +9,7 @@ import CarPicture from './entities/CarPicture.entity';
 import UserData from './entities/UserData.entity';
 import CalendarData from './entities/CalendarData.entity';
 import ChartData from './entities/ChartData.entity';
+import DocumentData from './entities/DocumentData.entity';
 
 @Module({
   imports: [
@@ -19,7 +20,7 @@ import ChartData from './entities/ChartData.entity';
       password: '',
       database: 'vizsgaremek',
       entities: [
-        UserData, CarData, Token, CarPicture, CalendarData, ChartData],
+        UserData, CarData, Token, CarPicture, CalendarData, ChartData, DocumentData],
       synchronize: true,
     }),
     AuthModule,
