@@ -15,12 +15,6 @@ import CalendarData from './entities/CalendarData.entity';
 import { start } from 'repl';
 import ChartData from './entities/ChartData.entity';
 
-interface AuthenticatedRequest extends Request {
-  user: UserData;
-  car: CarData;
-  carPic: CarPicture;
-}
-
 @Controller()
 export class AppController {
   constructor(
