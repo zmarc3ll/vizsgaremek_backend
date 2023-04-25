@@ -12,7 +12,6 @@ import CarData from './entities/CarData.entity';
 import { Response } from 'express';
 import CarPicture from './entities/CarPicture.entity';
 import CalendarData from './entities/CalendarData.entity';
-import { start } from 'repl';
 import ChartData from './entities/ChartData.entity';
 import DocumentData from './entities/DocumentData.entity';
 
