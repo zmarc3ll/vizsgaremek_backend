@@ -53,6 +53,13 @@ export class AppController {
     return { cars: usersCar };
   }
 
+  @Get('userCar/:id')
+  async getUsersCarByIdJavaEdition(@Param('id') userId: number) {
+    const carRepo = this.dataSource.getRepository(CarData);
+    const usersCar = await carRepo.findOne({ where: { userId: { id: userId } } });
+    return { cars: usersCar };
+  }
+
   @Get('car')
   async listCars() {
     const cars = this.dataSource.getRepository(CarData);
