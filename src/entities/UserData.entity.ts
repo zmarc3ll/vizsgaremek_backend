@@ -43,7 +43,7 @@ export default class UserData {
 
   @Column()
   @MinLength(3)
-  @MaxLength(10)
+  @MaxLength(20)
   username: string;
 
   @IsString()
