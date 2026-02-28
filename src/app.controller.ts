@@ -75,12 +75,12 @@ export class AppController {
       where: { id: userId },
     });
     const car = await carDataRepository.findOne({
-      where: {userId: user}
+      where: { userId: user }
     })
-    let where = {carData: car}
-    let where2 = {carData: car, start: MoreThanOrEqual(from)}
-    const event = await calendarRepo.find({where: (from == undefined? where : where2), take: limit, order: {start: 'ASC'}})
-    return {calDatas: event};
+    let where = { carData: car }
+    let where2 = { carData: car, start: MoreThanOrEqual(from) }
+    const event = await calendarRepo.find({ where: (from == undefined ? where : where2), take: limit, order: { start: 'ASC' } })
+    return { calDatas: event };
   }
 
   @Get('carPic/:id')
@@ -111,10 +111,10 @@ export class AppController {
       where: { id: userId },
     });
     const car = await carDataRepository.findOne({
-      where: {userId: user}
+      where: { userId: user }
     })
-    const doc = await documentRepo.find({where: {carsData: car},order: {date: 'ASC'}});
-    return {docDatas: doc};
+    const doc = await documentRepo.find({ where: { carsData: car }, order: { date: 'ASC' } });
+    return { docDatas: doc };
   }
 
   @Post('documents/:id')
@@ -132,7 +132,7 @@ export class AppController {
       where: { id: userId },
     });
     const car = await carDataRepository.findOne({
-      where: {userId: user}
+      where: { userId: user }
     })
     doc.carsData = car;
     documentData.carsData = car;
@@ -141,27 +141,28 @@ export class AppController {
     return doc;
   }
 
-  @Post('calendarEvent/:id')
-  @HttpCode(200)
-  async addEvent(@Body() calendarData: CalendarData, @Param('id') usersId: number) {
+  @Post('calendarEvent/:carId')
+  async addEvent(
+    @Body() calendarData: CalendarData,
+    @Param('carId') carId: number
+  ) {
     const calendarRepo = this.dataSource.getRepository(CalendarData);
-    calendarData.calId = undefined;
+    const carRepo = this.dataSource.getRepository(CarData);
+
+    const car = await carRepo.findOne({
+      where: { carId: carId }
+    });
+
+    if (!car) {
+      throw new NotFoundException('Car not found');
+    }
+
     const event = new CalendarData();
     event.title = calendarData.title;
     event.start = calendarData.start;
     event.comment = calendarData.comment;
-    const userId = usersId;
-    const carDataRepository = this.dataSource.getRepository(CarData);
-    const userDataRepository = this.dataSource.getRepository(UserData);
-    const user = await userDataRepository.findOne({
-      where: { id: userId },
-    });
-    const car = await carDataRepository.findOne({
-      where: {userId: user}
-    })
     event.carData = car;
-    calendarData.carData = car;
-    event.carData = calendarData.carData;
+
     await calendarRepo.save(event);
     return event;
   }
@@ -215,7 +216,7 @@ export class AppController {
   }
 
   @Get('chart/:id')
-  async getChartData(@Param('id') userId: number){
+  async getChartData(@Param('id') userId: number) {
     const chartDataRepo = this.dataSource.getRepository(ChartData);
     const carRepo = this.dataSource.getRepository(CarData);
     const carId = await carRepo.find({ where: { userId: { id: userId } } });
@@ -236,7 +237,7 @@ export class AppController {
 
   @Post('chart/:id')
   @HttpCode(200)
-  async addChartData(@Body()chartData: ChartData, @Param('id') usersId: number) {
+  async addChartData(@Body() chartData: ChartData, @Param('id') usersId: number) {
     const chartDataRepo = this.dataSource.getRepository(ChartData);
     chartData.chartId = undefined;
     const chart = new ChartData();
@@ -249,7 +250,7 @@ export class AppController {
       where: { id: userId },
     });
     const car = await carDataRepository.findOne({
-      where: {userId: user}
+      where: { userId: user }
     })
     chart.carData = car;
     chartData.carData = car;
@@ -312,4 +313,190 @@ export class AppController {
     }
     return res.sendFile(carPicture.carPic, { root: './uploadedFiles/cars' });
   }
-}
+
+  //-----------------------------------------------ujak----------------------------------------------------------
+/*
+  @Get('users/:userId/cars')
+  async getUsersCars(@Param('userId') userId: number) {
+    const carRepo = this.dataSource.getRepository(CarData);
+
+    return await carRepo.find({
+      where: { userId: { id: userId } }
+    });
+  }
+
+  @Post('users/:userId/cars')
+  @HttpCode(200)
+  async addCar(
+    @Body() carData: CarData,
+    @Param('userId') userId: number
+  ) {
+    const carRepo = this.dataSource.getRepository(CarData);
+    const userRepo = this.dataSource.getRepository(UserData);
+
+    const user = await userRepo.findOne({
+      where: { id: userId }
+    });
+
+    if (!user) throw new NotFoundException('User not found');
+
+    const car = carRepo.create({
+      ...carData,
+      userId: user
+    });
+
+    return await carRepo.save(car);
+  }
+
+  @Get('cars/:carId/calendar')
+  async getCalendarEvents(
+    @Param('carId') carId: number,
+    @Query('limit') limit: number,
+    @Query('from') from?: string
+  ) {
+    const calendarRepo = this.dataSource.getRepository(CalendarData);
+    const carRepo = this.dataSource.getRepository(CarData);
+
+    const car = await carRepo.findOne({
+      where: { carId }
+    });
+
+    if (!car) throw new NotFoundException('Car not found');
+
+    const where = from
+      ? { carData: car, start: MoreThanOrEqual(from) }
+      : { carData: car };
+
+    return await calendarRepo.find({
+      where,
+      take: limit,
+      order: { start: 'ASC' }
+    });
+  }
+
+  @Post('cars/:carId/calendar')
+  @HttpCode(200)
+  async addEvent(
+    @Body() calendarData: CalendarData,
+    @Param('carId') carId: number
+  ) {
+    const calendarRepo = this.dataSource.getRepository(CalendarData);
+    const carRepo = this.dataSource.getRepository(CarData);
+
+    const car = await carRepo.findOne({
+      where: { carId }
+    });
+
+    if (!car) throw new NotFoundException('Car not found');
+
+    const event = calendarRepo.create({
+      ...calendarData,
+      carData: car
+    });
+
+    return await calendarRepo.save(event);
+  }
+
+  @Get('cars/:carId/documents')
+  async getCarDocuments(@Param('carId') carId: number) {
+    const docRepo = this.dataSource.getRepository(DocumentData);
+    const carRepo = this.dataSource.getRepository(CarData);
+
+    const car = await carRepo.findOne({ where: { carId } });
+    if (!car) throw new NotFoundException('Car not found');
+
+    return await docRepo.find({
+      where: { carsData: car },
+      order: { date: 'ASC' }
+    });
+  }
+
+  @Post('cars/:carId/documents')
+  @HttpCode(200)
+  async addDocument(
+    @Body() documentData: DocumentData,
+    @Param('carId') carId: number
+  ) {
+    const docRepo = this.dataSource.getRepository(DocumentData);
+    const carRepo = this.dataSource.getRepository(CarData);
+
+    const car = await carRepo.findOne({ where: { carId } });
+    if (!car) throw new NotFoundException('Car not found');
+
+    const doc = docRepo.create({
+      ...documentData,
+      carsData: car
+    });
+
+    return await docRepo.save(doc);
+  }
+
+  @Get('cars/:carId/chart')
+  async getChartData(@Param('carId') carId: number) {
+    const chartRepo = this.dataSource.getRepository(ChartData);
+    const carRepo = this.dataSource.getRepository(CarData);
+
+    const car = await carRepo.findOne({ where: { carId } });
+    if (!car) throw new NotFoundException('Car not found');
+
+    const chartData = await chartRepo.find({
+      where: { carData: car }
+    });
+
+    return chartData.sort(
+      (a, b) =>
+        new Date(a.date).getTime() - new Date(b.date).getTime()
+    );
+  }
+
+  @Post('cars/:carId/chart')
+  @HttpCode(200)
+  async addChartData(
+    @Body() chartData: ChartData,
+    @Param('carId') carId: number
+  ) {
+    const chartRepo = this.dataSource.getRepository(ChartData);
+    const carRepo = this.dataSource.getRepository(CarData);
+
+    const car = await carRepo.findOne({ where: { carId } });
+    if (!car) throw new NotFoundException('Car not found');
+
+    const chart = chartRepo.create({
+      ...chartData,
+      carData: car
+    });
+
+    return await chartRepo.save(chart);
+  }
+
+  @Post('cars/:carId/upload')
+  @UseInterceptors(FileInterceptor('carFile', {
+    storage: diskStorage({
+      destination: './uploadedFiles/cars',
+      filename: (req, file, cb) => {
+        const randomName = Array(32)
+          .fill(null)
+          .map(() => Math.round(Math.random() * 16).toString(16))
+          .join('');
+        cb(null, `${randomName}${extname(file.originalname)}`);
+      },
+    }),
+  }))
+  async uploadFile(
+    @UploadedFile() file: Express.Multer.File,
+    @Param('carId') carId: number
+  ) {
+    const carRepo = this.dataSource.getRepository(CarData);
+    const picRepo = this.dataSource.getRepository(CarPicture);
+
+    const car = await carRepo.findOne({ where: { carId } });
+    if (!car) throw new NotFoundException('Car not found');
+
+    const picture = picRepo.create({
+      carPic: file.filename,
+      carsId: car
+    });
+
+    return await picRepo.save(picture);
+  }
+*/} 
