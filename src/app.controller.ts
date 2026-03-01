@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, HttpCode, NotFoundException, Param, Patch, Post, Query, Req, Request, Res, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
-import { DataSource, MoreThanOrEqual } from 'typeorm';
+import { DataSource, In, MoreThanOrEqual } from 'typeorm';
 import { AppService } from './app.service';
 import UserData from './entities/UserData.entity';
 import * as bcrypt from 'bcrypt';
@@ -67,19 +67,44 @@ export class AppController {
   }
 
   @Get('calendarEvent/:id')
-  async getCalendarEvents(@Param('id') userId: number, @Query('limit') limit: number, @Query('from') from?: string) {
+  async getCalendarEvents(
+    @Param('id') userId: number,
+    @Query('limit') limit: number,
+    @Query('from') from?: string,
+    @Query('carId') carId?: number,
+  ) {
     const calendarRepo = this.dataSource.getRepository(CalendarData);
-    const carDataRepository = this.dataSource.getRepository(CarData);
-    const userDataRepository = this.dataSource.getRepository(UserData);
-    const user = await userDataRepository.findOne({
-      where: { id: userId },
+    const carRepo = this.dataSource.getRepository(CarData);
+    const usersCars = await carRepo.find({
+      where: {
+        userId: {
+          id: userId,
+        },
+      },
+      select: {
+        carId: true,
+      },
     });
-    const car = await carDataRepository.findOne({
-      where: { userId: user }
+
+    const selectedCars = carId
+      ? usersCars.filter((car) => car.carId === Number(carId))
+      : usersCars;
+
+    if (selectedCars.length === 0) {
+      return { calDatas: [] };
+    }
+
+    const where = from
+      ? { carData: { carId: In(selectedCars.map((car) => car.carId)) }, start: MoreThanOrEqual(from) }
+      : { carData: { carId: In(selectedCars.map((car) => car.carId)) } };
+
+    const take = limit ? Number(limit) : undefined;
+    const event = await calendarRepo.find({
+      where,
+      take,
+      order: { start: 'ASC' },
     })
-    let where = { carData: car }
-    let where2 = { carData: car, start: MoreThanOrEqual(from) }
-    const event = await calendarRepo.find({ where: (from == undefined ? where : where2), take: limit, order: { start: 'ASC' } })
+
     return { calDatas: event };
   }
 
@@ -87,33 +112,65 @@ export class AppController {
   async getCarPic(@Param('id') userId: number) {
     const carPicRepo = this.dataSource.getRepository(CarPicture);
     const carRepo = this.dataSource.getRepository(CarData);
-    const carId = await carRepo.find({ where: { userId: { id: userId } } });
-    if (carId.length > 0) {
-      const carID = carId[0].carId;
-      const carPictures = await carPicRepo.find({
-        where: {
-          carsId: {
-            carId: carID
-          }
-        }
-      });
-      return carPictures;
+    const cars = await carRepo.find({
+      where: {
+        userId: {
+          id: userId,
+        },
+      },
+      select: {
+        carId: true,
+      },
+    });
+
+    if (cars.length === 0) {
+      return [];
     }
-    return [];
+
+    const carIds = cars.map((car) => car.carId);
+
+    return await carPicRepo.find({
+      where: {
+        carsId: {
+          carId: In(carIds),
+        },
+      },
+    });
   }
 
   @Get('documents/:id')
-  async getUsersDocuments(@Param('id') userId: number) {
+  async getUsersDocuments(@Param('id') userId: number, @Query('carId') carId?: number) {
     const documentRepo = this.dataSource.getRepository(DocumentData);
-    const carDataRepository = this.dataSource.getRepository(CarData);
-    const userDataRepository = this.dataSource.getRepository(UserData);
-    const user = await userDataRepository.findOne({
-      where: { id: userId },
+    const carRepo = this.dataSource.getRepository(CarData);
+
+    const cars = await carRepo.find({
+      where: {
+        userId: {
+          id: userId,
+        },
+      },
+      select: {
+        carId: true,
+      },
     });
-    const car = await carDataRepository.findOne({
-      where: { userId: user }
-    })
-    const doc = await documentRepo.find({ where: { carsData: car }, order: { date: 'ASC' } });
+
+    const selectedCars = carId
+      ? cars.filter((car) => car.carId === Number(carId))
+      : cars;
+
+    if (selectedCars.length === 0) {
+      return { docDatas: [] };
+    }
+
+    const doc = await documentRepo.find({
+      where: {
+        carsData: {
+          carId: In(selectedCars.map((car) => car.carId)),
+        },
+      },
+      order: { date: 'ASC' },
+    });
+
     return { docDatas: doc };
   }
 
@@ -216,23 +273,39 @@ export class AppController {
   }
 
   @Get('chart/:id')
-  async getChartData(@Param('id') userId: number) {
+  async getChartData(@Param('id') userId: number, @Query('carId') carId?: number) {
     const chartDataRepo = this.dataSource.getRepository(ChartData);
     const carRepo = this.dataSource.getRepository(CarData);
-    const carId = await carRepo.find({ where: { userId: { id: userId } } });
-    if (carId.length > 0) {
-      const carID = carId[0].carId;
-      const chartData = await chartDataRepo.find({
-        where: {
-          carData: {
-            carId: carID,
-          }
-        }
-      });
-      const sortedChartData = chartData.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-      return { chart: sortedChartData };
+
+    const cars = await carRepo.find({
+      where: {
+        userId: {
+          id: userId,
+        },
+      },
+      select: {
+        carId: true,
+      },
+    });
+
+    const selectedCars = carId
+      ? cars.filter((car) => car.carId === Number(carId))
+      : cars;
+
+    if (selectedCars.length === 0) {
+      return { chart: [] };
     }
-    return [];
+
+    const chartData = await chartDataRepo.find({
+      where: {
+        carData: {
+          carId: In(selectedCars.map((car) => car.carId)),
+        },
+      },
+    });
+
+    const sortedChartData = chartData.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    return { chart: sortedChartData };
   }
 
   @Post('chart/:id')
@@ -282,25 +355,45 @@ export class AppController {
       },
     })
   }))
-  async uploadFile(@UploadedFile() file: Express.Multer.File, @Request() req: CarData, @Param('id') usersId: number) {
+  async uploadFile(
+    @UploadedFile() file: Express.Multer.File,
+    @Request() req: CarData,
+    @Param('id') usersId: number,
+    @Query('carId') carId?: number,
+  ) {
     const carPicture = new CarPicture();
     carPicture.carPic = file.filename;
     const carRepo = this.dataSource.getRepository(CarData);
-    const carId = await carRepo.find({ where: { userId: { id: usersId } } }); // Assuming this is the car ID you want to find pictures for
-    if (carId.length > 0) {
-      const carID = carId[0].carId;
-      //const carId = req.carId;
-      const carDataRepository = this.dataSource.getRepository(CarData);
-      const car = await carDataRepository.findOne({
-        where: { carId: carID },
-      });
-      carPicture.carsId = car;
 
-      const carPictureRepository = this.dataSource.getRepository(CarPicture);
-      await carPictureRepository.save(carPicture);
-      return carPicture;
+    const cars = await carRepo.find({
+      where: {
+        userId: {
+          id: usersId,
+        },
+      },
+      select: {
+        carId: true,
+      },
+    });
+
+    if (cars.length === 0) {
+      throw new NotFoundException('Car not found');
     }
-    return [];
+
+    const targetCarId = carId ? Number(carId) : cars[0].carId;
+    const selectedCar = cars.find((car) => car.carId === targetCarId);
+
+    if (!selectedCar) {
+      throw new NotFoundException('Car not found');
+    }
+
+    const car = await carRepo.findOne({ where: { carId: selectedCar.carId } });
+    carPicture.carsId = car;
+
+    const carPictureRepository = this.dataSource.getRepository(CarPicture);
+    await carPictureRepository.save(carPicture);
+
+    return carPicture;
   }
 
   @Get('uploadedfiles/cars/:carPic')
