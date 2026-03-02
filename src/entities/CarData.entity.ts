@@ -46,7 +46,7 @@ export default class CarData {
   @Column()
   givenName: string;
 
-  @ManyToOne(() => UserData, (user) => user.cars)
+  @ManyToOne(() => UserData, user => user.cars)
   userId: UserData;
 
   @OneToMany(() => CalendarData, (calendar) => calendar.carData)

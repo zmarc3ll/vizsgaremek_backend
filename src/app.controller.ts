@@ -167,35 +167,45 @@ export class AppController {
     return event;
   }
 
-  @Post('car/:id')
-  @HttpCode(200)
-  async addCar(@Body() carData: CarData, @Param('id') usersId: number) {
+  //uj car hozzáadása, userId alapján
+  @Post('users/:userId/cars')
+  @HttpCode(201)
+  async addCar(
+    @Param('userId') userId: number,
+    @Body() carData: CarData
+  ) {
     const carRepo = this.dataSource.getRepository(CarData);
-    carData.carId = undefined;
-    const car = new CarData();
-    car.brand = carData.brand;
-    car.model = carData.model;
-    car.modelYear = carData.modelYear;
-    car.fuelType = carData.fuelType;
-    car.carPower = carData.carPower;
-    car.gearType = carData.gearType;
-    car.color = carData.color;
-    car.chassisType = carData.chassisType;
-    car.doors = carData.doors;
-    car.fuelEconomy = carData.fuelEconomy;
-    car.license_plate = carData.license_plate;
-    car.givenName = carData.givenName;
-    const userId = usersId;
-    const userDataRepository = this.dataSource.getRepository(UserData);
-    const user = await userDataRepository.findOne({
-      where: { id: userId },
+    const userRepo = this.dataSource.getRepository(UserData);
+
+    const user = await userRepo.findOne({
+      where: { id: userId }
     });
-    car.userId = user;
-    carData.userId = user;
-    car.userId = carData.userId;
-    await carRepo.save(car);
-    return car
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const newCar = carRepo.create({
+      brand: carData.brand,
+      model: carData.model,
+      modelYear: carData.modelYear,
+      fuelType: carData.fuelType,
+      carPower: carData.carPower,
+      gearType: carData.gearType,
+      color: carData.color,
+      chassisType: carData.chassisType,
+      doors: carData.doors,
+      fuelEconomy: carData.fuelEconomy,
+      license_plate: carData.license_plate,
+      givenName: carData.givenName,
+      userId: user
+    });
+
+    await carRepo.save(newCar);
+
+    return newCar;
   }
+
 
   @Delete('user/:id')
   deleteUser(@Param('id') id: number) {
