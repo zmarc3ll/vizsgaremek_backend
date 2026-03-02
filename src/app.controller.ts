@@ -46,12 +46,23 @@ export class AppController {
     return await users.find();
   }
 
+  //uj get cars
   @Get('usersCar/:id')
+  async getUsersCars(@Param('id') userId: number) {
+    const carRepo = this.dataSource.getRepository(CarData);
+    const cars = await carRepo.find({
+      where: { userId: { id: userId } },
+      relations: ['pictures'],   // ← itt adjuk hozzá a relációt
+    });
+    return { cars };
+  }
+
+  /*@Get('usersCar/:id')
   async getUsersCarById(@Param('id') userId: number) {
     const carRepo = this.dataSource.getRepository(CarData);
     const usersCar = await carRepo.find({ where: { userId: { id: userId } } });
     return { cars: usersCar };
-  }
+  }*/
 
   @Get('userCar/:id')
   async getUsersCarByIdJavaEdition(@Param('id') userId: number) {
@@ -279,7 +290,45 @@ export class AppController {
     };
   }
 
-  @Post('uploadfile/:id')
+  //uj upload carpic
+  @Post('uploadfile/:carId')
+  @UseInterceptors(FileInterceptor('carFile', {
+    storage: diskStorage({
+      destination: './uploadedFiles/cars',
+      filename: (req, file, cb) => {
+        const randomName = Array(32)
+          .fill(null)
+          .map(() => Math.round(Math.random() * 16).toString(16))
+          .join('');
+        cb(null, `${randomName}${extname(file.originalname)}`);
+      },
+    })
+  }))
+  async uploadFile(
+    @UploadedFile() file: Express.Multer.File,
+    @Param('carId') carId: number
+  ) {
+    const carRepo = this.dataSource.getRepository(CarData);
+    const carPictureRepo = this.dataSource.getRepository(CarPicture);
+
+    const car = await carRepo.findOne({
+      where: { carId: carId }
+    });
+
+    if (!car) {
+      throw new NotFoundException('Car not found');
+    }
+
+    const carPicture = new CarPicture();
+    carPicture.carPic = file.filename;
+    carPicture.carsId = car;
+
+    await carPictureRepo.save(carPicture);
+
+    return carPicture;
+  }
+
+  /*@Post('uploadfile/:id')
   @UseInterceptors(FileInterceptor('carFile', {
     storage: diskStorage({
       destination: './uploadedFiles/cars',
@@ -311,7 +360,7 @@ export class AppController {
       return carPicture;
     }
     return [];
-  }
+  }*/
 
   @Get('uploadedfiles/cars/:carPic')
   async getCarPicture(@Param('carPic') carPic: string, @Res() res: Response) {

@@ -11,6 +11,6 @@ export default class CarPicture{
     carPic: string;
 
     @ManyToOne(() => CarData, (car) => car.pictures)
-    @JoinColumn()
+    //@JoinColumn()
     carsId: CarData;
 }
