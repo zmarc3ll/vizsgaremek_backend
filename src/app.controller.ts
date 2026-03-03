@@ -47,30 +47,16 @@ export class AppController {
   }
 
   //uj get cars
-  @Get('usersCar/:id')
-  async getUsersCars(@Param('id') userId: number) {
-    const carRepo = this.dataSource.getRepository(CarData);
-    const cars = await carRepo.find({
-      where: { userId: { id: userId } },
-      relations: ['pictures'],   // ← itt adjuk hozzá a relációt
-    });
-    return { cars };
-  }
-
-  /*@Get('usersCar/:id')
-  async getUsersCarById(@Param('id') userId: number) {
-    const carRepo = this.dataSource.getRepository(CarData);
-    const usersCar = await carRepo.find({ where: { userId: { id: userId } } });
-    return { cars: usersCar };
-  }*/
-
-  @Get('userCar/:id')
-  async getUsersCarByIdJavaEdition(@Param('id') userId: number) {
-    const carRepo = this.dataSource.getRepository(CarData);
-    const usersCar = await carRepo.findOne({ where: { userId: { id: userId } } });
-    return { cars: usersCar };
-  }
-
+    @Get('usersCar/:id')
+    async getUsersCars(@Param('id') userId: number) {
+      const carRepo = this.dataSource.getRepository(CarData);
+      const cars = await carRepo.find({
+        where: { userId: { id: userId } },
+        relations: ['pictures'],   // ← itt adjuk hozzá a relációt
+      });
+      return { cars };
+    }
+    
   @Get('car')
   async listCars() {
     const cars = this.dataSource.getRepository(CarData);
