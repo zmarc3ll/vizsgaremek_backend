@@ -325,13 +325,10 @@ export class AppController {
         cb(null, `${randomName}${extname(file.originalname)}`);
       },
     }),
-
-    // 🔥 MÉRET LIMIT
     limits: {
       fileSize: 2 * 1024 * 1024, // 2MB
     },
 
-    // 🔥 CSAK KÉPEK ENGEDÉLYEZÉSE
     fileFilter: (req, file, cb) => {
       if (!file.mimetype.match(/\/(jpg|jpeg|png|webp)$/)) {
         cb(new BadRequestException('Csak JPG, PNG vagy WEBP kép tölthető fel!'), false);
@@ -377,5 +374,32 @@ export class AppController {
       return;
     }
     return res.sendFile(carPicture.carPic, { root: './uploadedFiles/cars' });
+  }
+
+  @Delete('deleteCarImage/:picId')
+  async deleteCarImage(@Param('picId') picId: number) {
+
+    const carPictureRepo = this.dataSource.getRepository(CarPicture);
+
+    const picture = await carPictureRepo.findOne({
+      where: { picId: picId }
+    });
+
+    if (!picture) {
+      throw new NotFoundException('Picture not found');
+    }
+
+    const fs = require('fs');
+    const path = `./uploadedFiles/cars/${picture.carPic}`;
+
+    // fájl törlése disk-ről
+    if (fs.existsSync(path)) {
+      fs.unlinkSync(path);
+    }
+
+    // adatbázisból törlés
+    await carPictureRepo.delete(picId);
+
+    return { message: 'Picture deleted' };
   }
 } 
