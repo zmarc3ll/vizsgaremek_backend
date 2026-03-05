@@ -153,22 +153,6 @@ export class AppController {
 
     return { calDatas: events };
   }
-  /*@Get('calendarEvent/:id')
-  async getCalendarEvents(@Param('id') userId: number, @Query('limit') limit: number, @Query('from') from?: string) {
-    const calendarRepo = this.dataSource.getRepository(CalendarData);
-    const carDataRepository = this.dataSource.getRepository(CarData);
-    const userDataRepository = this.dataSource.getRepository(UserData);
-    const user = await userDataRepository.findOne({
-      where: { id: userId },
-    });
-    const car = await carDataRepository.findOne({
-      where: { userId: user }
-    })
-    let where = { carData: car }
-    let where2 = { carData: car, start: MoreThanOrEqual(from) }
-    const event = await calendarRepo.find({ where: (from == undefined ? where : where2), take: limit, order: { start: 'ASC' } })
-    return { calDatas: event };
-  }*/
 
   @Post('calendarEvent/:carId')
   async addEvent(
@@ -239,6 +223,26 @@ export class AppController {
     await carRepo.save(newCar);
 
     return newCar;
+  }
+
+  // AppController.ts
+  @Patch('cars/:id')
+  async updateCar(@Param('id') carId: number, @Body() carData: Partial<CarData>) {
+    const carRepo = this.dataSource.getRepository(CarData);
+
+    // Autó lekérése
+    const car = await carRepo.findOne({ where: { carId } });
+    if (!car) {
+      throw new NotFoundException('Car not found');
+    }
+
+    // Részleges frissítés a beérkező adatokkal
+    Object.assign(car, carData);
+
+    // Mentés az adatbázisba
+    await carRepo.save(car);
+
+    return car;
   }
 
 
